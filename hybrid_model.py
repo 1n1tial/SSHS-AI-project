@@ -32,6 +32,13 @@ X_test_structured_std = pd.read_csv('/data/X_test_structured.csv', sep = ';')
 X_train_image = pd.read_csv('/data/X_train_image.csv', sep = ';')
 X_test_image = pd.read_csv('/data/X_test_image.csv', sep = ';')
 
+X_train_text = pd.read_csv('/data/X_train_text.csv', sep = ';')
+X_test_text = pd.read_csv('/data/X_test_text.csv', sep = ';')
+
+del X_train_text['Unnamed: 0']
+del X_test_text['Unnamed: 0']
+
+
 
 y_train_std = pd.read_csv('/data/y_train_std.csv', sep = ';')
 y_test_std = pd.read_csv('/data/y_test_std.csv', sep = ';')
