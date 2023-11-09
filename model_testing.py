@@ -13,8 +13,8 @@ fine_tuned_structured = keras.models.load_model('/data/model/best_structured_mod
 fine_tuned_structured_nlp = keras.models.load_model('/data/model/best_model_struct_nlp.h5', compile=False, custom_objects={'Attention': Attention})
 print('loaded DONE!')
 
-X_train_structured_std = pd.read_csv('/data/X_train_structured.csv', sep = ';')
-X_test_structured_std = pd.read_csv('/data/X_test_structured.csv', sep = ';')
+X_train_structured_std = pd.read_csv('/data/X_train_structured.csv')
+X_test_structured_std = pd.read_csv('/data/X_test_structured.csv')
 
 file = open("/data/model/X_train_image_array.pkl",'rb')
 X_train_image_array = pkl.load(file)
