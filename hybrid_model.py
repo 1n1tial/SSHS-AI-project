@@ -13,12 +13,12 @@ from keras.applications.inception_v3 import preprocess_input
 from keras.layers import BatchNormalization, Conv2D, Conv1D, MaxPooling2D, MaxPooling1D, GlobalMaxPooling1D, GlobalAveragePooling2D, Activation, Dropout, Dense, Input, Multiply
 from keras.models import Sequential, Model
 from keras.regularizers import l2, l1
-from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from keras.optimizers import Adam, SGD, RMSprop
 from keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint, History, LearningRateScheduler
 from keras.losses import MeanAbsoluteError, MeanAbsolutePercentageError, MeanSquaredError
 #from keras.utils import plot_model, Sequence
 from keras.initializers import Constant
-from tensorflow.keras.optimizers.schedules import ExponentialDecay
+from keras.optimizers.schedules import ExponentialDecay
 
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
@@ -206,7 +206,7 @@ lr_schedule = ExponentialDecay(
 model.compile(optimizer=Adam(learning_rate=initial_learning_rate, epsilon=1), loss="mean_squared_error", metrics=[ MeanSquaredError()])
 print(model.summary())
 
-from tensorflow.keras.utils import plot_model
+from keras.utils import plot_model
 plot_model(model, to_file="final_model.png",
     show_shapes=True,
     show_dtype=False,
