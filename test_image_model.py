@@ -7,10 +7,14 @@ from keras.layers import BatchNormalization, GlobalAveragePooling2D, Dense, Inpu
 from keras.models import Model
 from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.losses import MeanSquaredError
+from keras.optimizers.schedules import ExponentialDecay
 
-from keras.layers import Dense
+from keras.layers import Dense, Flatten, Conv2D, Dropout, MaxPooling2D,MaxPooling1D
 from keras.layers import Activation,Dropout,Flatten,BatchNormalization
 from keras.models import Sequential
+
+import keras
 
 
 
@@ -45,6 +49,7 @@ class generator:
         with h5py.File(self.file, 'r') as hf:
             train_imarr = np.array(hf[self.type]['images_log'])
             train_pvlog = np.array(hf[self.type]['pv_log'])
+            train_imarr = tf.image.convert_image_dtype(train_imarr, tf.float32)
             for i in range(len(train_imarr)):
                 yield train_imarr[i], np.array([train_pvlog[i]])
             
@@ -65,25 +70,42 @@ image_test_generator = tf.data.Dataset.from_generator(
     ).batch(batch_size)
 
 
+# define model characteristics
+num_filters = 24
+kernel_size = [3,3]
+pool_size = [2,2]
+strides = 2
+dense_size = 1024
+drop_rate = 0.4
 
+## input
+### input image logs with shape (64,64,24)
+x_in = Input(shape=(input_size, input_size, 3))
 
-base_model = InceptionV3(weights="imagenet", include_top=False, input_tensor=Input(shape=(input_size*4, input_size*4, 3)))
+## 1st convolution block
+x = keras.layers.Conv2D(3,[3,3],padding="same",activation='relu')(x_in)
+x = keras.layers.BatchNormalization()(x)
+x = keras.layers.MaxPooling2D([2,2], 2)(x)
 
-for layer in base_model.layers:
-    layer.trainable=False
-    
-img_input = Input(shape=(input_size, input_size, 3))
+## 2nd convolution block
+x = keras.layers.Conv2D(num_filters*2,kernel_size,padding="same",activation='relu')(x)
+x = keras.layers.BatchNormalization()(x)
+x = keras.layers.MaxPooling2D(pool_size, strides)(x)
 
-upsamp1 = tf.keras.layers.UpSampling2D((2,2))(img_input)
-upsamp2 = tf.keras.layers.UpSampling2D((2,2))(upsamp1)
-x = base_model(upsamp2, training=False)
-x = GlobalAveragePooling2D(name="avg_pool")(x)
-x = BatchNormalization()(x)
-#x = Dropout(0.5)(x)
-output_cnn = Dense(64, activation='relu', kernel_initializer='he_normal', name='dense_hidden')(x) #256
-last_layer = Dense(1, activation='linear')(output_cnn)
+## two fully connected nets
+x = keras.layers.Flatten()(x)
 
-model = Model(inputs=img_input, outputs=last_layer)
+x = keras.layers.Dense(dense_size, activation='relu')(x)
+x = keras.layers.Dropout(drop_rate)(x)
+x = keras.layers.Dense(dense_size, activation='relu')(x)
+x = keras.layers.Dropout(drop_rate)(x)
+
+## regression to prediction target
+y_out = keras.layers.Dense(units=1)(x)
+
+# construct the model
+model = keras.Model(inputs=x_in,outputs=y_out)
+
 
 
         

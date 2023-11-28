@@ -1,11 +1,10 @@
-
 from keras.models import Model
 import keras
 import cv2
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from keras.preprocessing.image import load_img
-from keras.preprocessing.image import img_to_array
+# from keras.preprocessing.image import load_img
+# from keras.preprocessing.image import img_to_array
 import numpy as np
 import h5py
 
@@ -27,9 +26,9 @@ def compute_heatmap_inceptionV3(model_pretrained, image, eps=1e-8):
     # softmax activations from the model
     
     gradModel = Model(
-        inputs=[model_pretrained.get_layer('input_2').inputs],
-        outputs=[model_pretrained.get_layer('input_2').get_layer(find_target_layer(model_pretrained.get_layer('input_2'))).output,
-            model_pretrained.get_layer('input_2').output])
+        inputs=[model_pretrained.get_layer('inception_v3').inputs],
+        outputs=[model_pretrained.get_layer('inception_v3').get_layer(find_target_layer(model_pretrained.get_layer('inception_v3'))).output,
+            model_pretrained.get_layer('inception_v3').output])
     
     # record operations for automatic differentiation
     with tf.GradientTape() as tape:
@@ -71,20 +70,29 @@ def compute_heatmap_inceptionV3(model_pretrained, image, eps=1e-8):
     # return the resulting heatmap to the calling function
     return heatmap
   
-fine_tuned_inceptionv3 = keras.models.load_model('./data/model/best_iv3_model_simple.hdf5', compile=False)
+fine_tuned_inceptionv3 = keras.models.load_model('./data/model_archive/best_iv3_model_simple(2).hdf5', compile=False)
 
 with h5py.File('./data/2017_2019_images_pv_processed.hdf5', 'r') as hf:
         train_imarr = np.array(hf['trainval']['images_log'])
         train_pvlog = np.array(hf['trainval']['pv_log'])
 
-for img in train_imarr[:3]:
+for i, img in enumerate(train_imarr[500:503]):
+    print(img.shape)
     img = img.reshape((1, img.shape[0], img.shape[1], img.shape[2]))
+    print(img.shape)
+    img = tf.keras.layers.UpSampling2D((2, 2))(img)
+    img = tf.keras.layers.UpSampling2D((2, 2))(img)
+    print(img.shape)
+    img = img.numpy()
     
     img_heatmap = compute_heatmap_inceptionV3(fine_tuned_inceptionv3, img, eps=1e-8)
     
     colormap=cv2.COLORMAP_TURBO
     alpha = 0.43
     heatmap = cv2.applyColorMap(img_heatmap, colormap, 0)[:, :, 0]
-
     plt.imshow(heatmap)
+    plt.savefig(f'./data/heatmap{i}.png')
+    plt.imsave(f'./data/img{i}.png', img.reshape((img.shape[1], img.shape[2], 3)), cmap='rainbow')
+    print(1)
+    # plt.show()
     plt.close()
